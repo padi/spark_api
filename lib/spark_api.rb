@@ -16,32 +16,15 @@ require 'spark_api/primary_array'
 require 'spark_api/options_hash'
 require 'spark_api/models'
 
-module SparkApi
-  extend Configuration
-  extend MultiClient
- 
-  #:nocov:
-  def self.logger
-    if @logger.nil?
-      @logger = Logger.new(STDOUT)
-      @logger.level = Logger::INFO
-    end
-    @logger
-  end
-  #:nocov:
+# declare that this gem is exclusive to RubyMotion
+unless defined?(Motion::Project::Config)
+  raise "This file must be required within a RubyMotion project Rakefile."
+end
 
-  def self.client(opts={})
-    Thread.current[:spark_api_client] ||= SparkApi::Client.new(opts)
+Motion::Project::App.setup do |app|
+  Dir.glob(
+    File.join(File.dirname(__FILE__), 'spark/**/*.rb')
+  ).each do |file|
+    app.files.unshift(file)
   end
-
-  def self.method_missing(method, *args, &block)
-    return super unless (client.respond_to?(method))
-    client.send(method, *args, &block)
-  end
-  
-  def self.reset
-    reset_configuration
-    Thread.current[:spark_api_client] = nil
-  end
-
 end
